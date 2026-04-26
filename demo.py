@@ -14,10 +14,10 @@ from docx_formatter import generate_formatting_instructions, format_docx_bytes
 
 # ===== 配置区（建议用环境变量）=====
 # 注意：os.getenv 的第一个参数必须是“环境变量名”，不是 API Key 本身。
-CODE_API_KEY = "1c3e83b7-e80f-457b-9d9f-c313c8a3070e"
+CODE_API_KEY = "xxxxxxxxxxxxxxxxx"
 API_KEY = (os.getenv("ARK_API_KEY") or CODE_API_KEY).strip()
 MODEL = os.getenv("ARK_MODEL", "doubao-seed-2-0-lite-260215")
-ARK_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
+ARK_URL = "xxxxxxxxxxxxxxxxxxxxxxx"
 LLM_TIMEOUT_SECONDS = 300
 LLM_RETRY_TIMES = 3
 # ================================
