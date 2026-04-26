@@ -13,7 +13,7 @@ ROOT_DIR = PROJECT_DIR.parent
 
 DEFAULT_HTML_PATH = PROJECT_DIR / "tempt_files" / "output_synced.html"
 DEFAULT_PROMPT_PATH = MODULE_DIR / "prompt_consistency.txt"
-DEMO_PY_PATH = ROOT_DIR / "文档规则" / "demo.py"
+DEMO_PY_PATH = ROOT_DIR / "rule_main_demo" / "demo.py"
 DEFAULT_OUTPUT_PATH = PROJECT_DIR / "runtime" / "consistency_result.json"
 
 
