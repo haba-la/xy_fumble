@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<title>文档格式自动排版工具（完美导出PDF/Word）</title>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+<style>
+*{box-sizing:border-box;font-family: "Microsoft YaHei",sans-serif}
+body{max-width:1000px;margin:30px auto;padding:0 20px}
+.panel{border:1px solid #ddd;border-radius:8px;padding:16px;margin-bottom:16px}
+.panel h3{margin-top:0}
+button{padding:8px 14px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;margin-right:8px;margin-bottom:8px}
+textarea{width:100%;height:160px;padding:10px;border-radius:6px;border:1px solid #ccc}
+#report{background:#fff8f8;color:#b91c1c;padding:12px;border-radius:6px;white-space:pre-line}
+#preview{background:#f9fafb;padding:20px;border-radius:8px;margin-top:12px;line-height:1.7}
+.import-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<div class="panel">
+  <h3>📁 导入文件</h3>
+  <div class="import-bar">
+    <button onclick="document.getElementById('fileHtml').click()">导入 HTML 文档</button>
+    <button onclick="document.getElementById('fileConfig').click()">导入格式规范文件</button>
+    <input type="file" id="fileHtml" accept=".html" style="display:none">
+    <input type="file" id="fileConfig" accept=".json" style="display:none">
+  </div>
+</div>
+
+<div class="panel">
+  <h3>⚙️ 当前格式规范</h3>
+  <textarea id="configJson" placeholder='格式规范将显示在这里（JSON）'></textarea>
+  <button onclick="saveConfigJson()">下载格式规范模板</button>
+</div>
+
+<div class="panel">
+  <h3>📝 文档内容</h3>
+  <textarea id="contentEditor"></textarea>
+</div>
+
+<div class="panel">
+  <h3>🔍 操作</h3>
+  <button onclick="doCheck()">检查格式是否合规</button>
+  <button onclick="doFormat()">自动排版</button>
+</div>
+
+<div class="panel">
+  <h3>📊 检查报告</h3>
+  <div id="report"></div>
+</div>
+
+<div class="panel">
+  <h3>👀 排版预览</h3>
+  <div id="preview"></div>
+</div>
+
+<div class="panel">
+  <h3>💾 导出</h3>
+  <button onclick="exportHtml()">导出 HTML</button>
+  <button onclick="exportWordSimple()">导出 Word</button>
+</div>
+
+<script>
+let currentLines = [];
+let currentConfig = {
+  titleFontSize: "24px",
+  bodyFontSize: "16px",
+  lineHeight: 1.7,
+  textIndent: "2em",
+  marginBottom: "14px",
+  fontFamily: "Microsoft YaHei, sans-serif"
+};
+
+// 导入HTML
+document.getElementById('fileHtml').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    const html = ev.target.result;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const txt = doc.body.innerText || '';
+    document.getElementById('contentEditor').value = txt;
+  };
+  r.readAsText(f, 'utf-8');
+});
+
+// 导入格式配置
+document.getElementById('fileConfig').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try{
+      const cfg = JSON.parse(ev.target.result);
+      currentConfig = cfg;
+      document.getElementById('configJson').value = JSON.stringify(cfg, null, 2);
+    }catch(e){ alert('格式文件错误'); }
+  };
+  r.readAsText(f, 'utf-8');
+});
+
+// 下载格式模板
+function saveConfigJson() {
+  const blob = new Blob([JSON.stringify(currentConfig, null, 2)], {type:'application/json'});
+  saveAs(blob, '格式规范.json');
+}
+
+// 检查格式
+function doCheck() {
+  const text = document.getElementById('contentEditor').value;
+  if(!text){ alert('请输入内容'); return; }
+  const lines = text.split(/\n/).map(s=>s.trim()).filter(Boolean);
+  currentLines = lines;
+  const rep = [];
+  lines.forEach((line,i)=>{
+    if(i===0 || /^第.*章|^标题|^\d+\.|^[一二三四五六七八九十]/.test(line)){
+      rep.push(`第${i+1}行【标题】应字号：${currentConfig.titleFontSize}，居中加粗`);
+    }else{
+      rep.push(`第${i+1}行【正文】应字号：${currentConfig.bodyFontSize}，行高${currentConfig.lineHeight}`);
+    }
+  });
+  document.getElementById('report').innerText = rep.join('\n');
+}
+
+// 自动排版预览
+function doFormat() {
+  doCheck();
+  const lines = currentLines;
+  let html = '';
+  lines.forEach((line,i)=>{
+    if(i===0 || /^第.*章|标题|^\d+\.|^[一二三四五六七八九十]/.test(line)){
+      html+=`<div style="font-size:${currentConfig.titleFontSize};font-family:${currentConfig.fontFamily};font-weight:bold;text-align:center;margin-bottom:${currentConfig.marginBottom};line-height:${currentConfig.lineHeight}">${line}</div>`;
+    }else{
+      html+=`<div style="font-size:${currentConfig.bodyFontSize};font-family:${currentConfig.fontFamily};text-indent:${currentConfig.textIndent};line-height:${currentConfig.lineHeight};margin-bottom:${currentConfig.marginBottom}">${line}</div>`;
+    }
+  });
+  document.getElementById('preview').innerHTML = html;
+  document.getElementById('report').innerText = "✅ 已自动排版完成";
+}
+
+// 导出HTML
+function exportHtml() {
+  const html = `<!DOCTYPE html><meta charset="utf-8"><body>${document.getElementById('preview').innerHTML}</body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  saveAs(blob, '排版完成.html');
+  alert("✅ HTML导出成功！");
+}
+
+// 导出Word（带格式）
+function exportWordSimple() {
+  if (currentLines.length === 0) {
+    alert("请先自动排版！");
+    return;
+  }
+
+  let content = "";
+  currentLines.forEach((line, i) => {
+    content += line + "\r\n\r\n";
+  });
+
+  const blob = new Blob([content], { type: "application/msword" });
+  saveAs(blob, "文档.doc");
+  alert("✅ Word导出成功！\n（Word 纯文本格式无法保留样式，如需带格式请用 HTML/PDF）");
+}
+</script>
+</body>
+</html>

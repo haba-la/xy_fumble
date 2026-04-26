@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>简洁对话 Demo</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --line: #d9dee5;
+      --text: #1f2937;
+      --sub: #6b7280;
+      --brand: #0f766e;
+      --brand-hover: #0b5f59;
+      --user: #0f766e;
+      --ai: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 860px;
+      height: min(88vh, 900px);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      display: grid;
+      grid-template-rows: auto 1fr auto auto;
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .tip {
+      font-size: 12px;
+      color: var(--sub);
+    }
+
+    .chat {
+      padding: 16px;
+      overflow-y: auto;
+      background: #fafbfc;
+    }
+
+    .empty {
+      color: var(--sub);
+      text-align: center;
+      margin-top: 24px;
+      font-size: 14px;
+    }
+
+    .msg {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .msg-label {
+      font-size: 12px;
+      color: var(--sub);
+    }
+
+    .msg-body {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      line-height: 1.7;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-width: min(720px, 90%);
+    }
+
+    .msg.user {
+      align-items: flex-end;
+    }
+
+    .msg.user .msg-body {
+      background: var(--user);
+      border-color: var(--user);
+      color: #ffffff;
+    }
+
+    .msg.ai {
+      align-items: flex-start;
+    }
+
+    .msg.ai .msg-body {
+      background: var(--ai);
+    }
+
+    .composer {
+      border-top: 1px solid var(--line);
+      background: #ffffff;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    #input {
+      width: 100%;
+      min-height: 74px;
+      max-height: 180px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    #send {
+      border: 0;
+      background: var(--brand);
+      color: #ffffff;
+      border-radius: 8px;
+      height: 40px;
+      min-width: 84px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    #send:hover {
+      background: var(--brand-hover);
+    }
+
+    #send:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .template-panel {
+      border-top: 1px solid var(--line);
+      background: #fcfffe;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .template-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0b4b45;
+    }
+
+    .template-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .template-grid input,
+    .template-panel textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-size: 13px;
+      outline: none;
+      background: #ffffff;
+    }
+
+    #formatRuleInput {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .template-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    #genTemplate {
+      border: 0;
+      background: #1d4ed8;
+      color: #ffffff;
+      border-radius: 8px;
+      height: 36px;
+      min-width: 170px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    #genTemplate:hover {
+      background: #1e40af;
+    }
+
+    #genTemplate:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .template-save-label {
+      font-size: 12px;
+      color: var(--sub);
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    #templateResult {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      background: #ffffff;
+      min-height: 56px;
+      max-height: 180px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #334155;
+    }
+
+    @media (max-width: 680px) {
+      .app {
+        height: 94vh;
+      }
+
+      .composer {
+        grid-template-columns: 1fr;
+      }
+
+      #send {
+        width: 100%;
+      }
+
+      .template-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="title">对话框模式</div>
+      <div class="tip" id="status">就绪</div>
+    </header>
+
+    <section class="chat" id="chat">
+      <div class="empty">开始输入你的问题吧</div>
+    </section>
+
+    <section class="composer">
+      <textarea id="input" placeholder="输入消息，Enter 发送，Shift+Enter 换行"></textarea>
+      <button id="send">发送</button>
+    </section>
+
+    <section class="template-panel">
+      <div class="template-title">输入规则一键生成模板</div>
+      <div class="template-grid">
+        <input id="templateName" placeholder="模板名称，例如：学术论文模板" />
+        <input id="templateDesc" placeholder="模板描述（可选）" />
+      </div>
+      <textarea id="formatRuleInput" placeholder="输入自然语言规则，例如：标题黑体小二居中加粗，正文宋体小四两端对齐，行距1.5倍"></textarea>
+      <div class="template-actions">
+        <button id="genTemplate">一键生成模板</button>
+        <label class="template-save-label"><input id="saveTemplate" type="checkbox" checked /> 同时保存到服务器 templates 目录</label>
+      </div>
+      <div id="templateResult">模板结果将显示在这里</div>
+    </section>
+  </main>
+
+  <script>
+    const chatEl = document.getElementById("chat");
+    const inputEl = document.getElementById("input");
+    const sendEl = document.getElementById("send");
+    const statusEl = document.getElementById("status");
+    const templateNameEl = document.getElementById("templateName");
+    const templateDescEl = document.getElementById("templateDesc");
+    const formatRuleInputEl = document.getElementById("formatRuleInput");
+    const genTemplateEl = document.getElementById("genTemplate");
+    const saveTemplateEl = document.getElementById("saveTemplate");
+    const templateResultEl = document.getElementById("templateResult");
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function appendMessage(role, text) {
+      const empty = chatEl.querySelector(".empty");
+      if (empty) empty.remove();
+
+      const wrap = document.createElement("div");
+      wrap.className = `msg ${role}`;
+
+      const label = document.createElement("div");
+      label.className = "msg-label";
+      label.textContent = role === "user" ? "你" : "AI";
+
+      const body = document.createElement("div");
+      body.className = "msg-body";
+      body.textContent = text;
+
+      wrap.append(label, body);
+      chatEl.appendChild(wrap);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const message = inputEl.value.trim();
+      if (!message) return;
+
+      appendMessage("user", message);
+      inputEl.value = "";
+      setStatus("发送中...");
+      sendEl.disabled = true;
+
+      try {
+        const resp = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: message })
+        });
+
+        const data = await resp.json();
+        if (!resp.ok || !data.ok) {
+          throw new Error(data.error || "请求失败");
+        }
+
+        appendMessage("ai", data.reply);
+        setStatus("完成");
+      } catch (err) {
+        appendMessage("ai", "请求失败：" + err.message);
+        setStatus("失败");
+      } finally {
+        sendEl.disabled = false;
+        inputEl.focus();
+      }
+    }
+
+    function showTemplateResult(text) {
+      templateResultEl.textContent = text;
+    }
+
+    async function generateTemplate() {
+      const templateName = templateNameEl.value.trim();
+      const templateDescription = templateDescEl.value.trim();
+      const formatText = formatRuleInputEl.value.trim();
+
+      if (!templateName) {
+        showTemplateResult("请先输入模板名称");
+        templateNameEl.focus();
+        return;
+      }
+      if (!formatText) {
+        showTemplateResult("请先输入规则描述");
+        formatRuleInputEl.focus();
+        return;
+      }
+
+      genTemplateEl.disabled = true;
+      setStatus("模板生成中...");
+      showTemplateResult("正在调用大模型，请稍候...");
+
+      try {
+        const resp = await fetch("/api/template/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            template_name: templateName,
+            template_description: templateDescription,
+            format_text: formatText,
+            save: Boolean(saveTemplateEl.checked)
+          })
+        });
+
+        const rawText = await resp.text();
+        let data = null;
+        try {
+          data = JSON.parse(rawText);
+        } catch (parseErr) {
+          const snippet = rawText.slice(0, 220).replace(/\s+/g, " ");
+          throw new Error(`接口返回非JSON（HTTP ${resp.status}）：${snippet}`);
+        }
+
+        if (!resp.ok || !data.ok) {
+          throw new Error(data.error || "模板生成失败");
+        }
+
+        showTemplateResult(JSON.stringify(data, null, 2));
+        appendMessage("ai", "模板已生成，可在下方查看 JSON 结果。\n名称：" + templateName);
+        setStatus("模板生成完成");
+      } catch (err) {
+        showTemplateResult("生成失败：" + err.message);
+        setStatus("模板生成失败");
+      } finally {
+        genTemplateEl.disabled = false;
+      }
+    }
+
+    sendEl.addEventListener("click", sendMessage);
+
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    genTemplateEl.addEventListener("click", generateTemplate);
+  </script>
+</body>
+</html>

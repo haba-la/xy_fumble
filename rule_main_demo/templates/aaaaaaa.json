@@ -1,0 +1,20 @@
+{
+  "name": "aaaaaaa",
+  "description": "vdvd",
+  "rules": {
+    "论文题目": {
+      "font": "黑体",
+      "size": "二号",
+      "bold": true,
+      "alignment": "center",
+      "line_spacing": 1.5
+    },
+    "正文": {
+      "font": "宋体",
+      "size": "小四",
+      "bold": false,
+      "alignment": "justify",
+      "line_spacing": 1.5
+    }
+  }
+}

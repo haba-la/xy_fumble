@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文档规则工作台</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --line: #d6deea;
+      --text: #122033;
+      --muted: #52637a;
+      --brand: #1359d1;
+      --brand-hover: #0f47a9;
+      --ok: #0f7a4b;
+      --warn: #b45309;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: radial-gradient(1200px 700px at 15% -10%, #dbeafe 0%, #f3f6fb 58%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      gap: 14px;
+    }
+
+    .topbar {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    input, textarea, select, button {
+      font: inherit;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 10px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    button {
+      border: 0;
+      background: var(--brand);
+      color: #fff;
+      border-radius: 10px;
+      padding: 9px 12px;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--brand-hover); }
+    button:disabled { opacity: 0.65; cursor: not-allowed; }
+
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .template-list {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      max-height: 220px;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.5;
+      background: #fbfdff;
+    }
+
+    .template-item {
+      padding: 6px 4px;
+      border-bottom: 1px solid #eef2f7;
+    }
+
+    .template-item:last-child {
+      border-bottom: 0;
+    }
+
+    .result {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      background: #fbfdff;
+      padding: 8px;
+      min-height: 60px;
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+      .row2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">文档规则工作台</div>
+      <div class="status" id="status">就绪</div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h3>模板管理</h3>
+        <div class="muted">模板文件固定存储在 /root/文档规则/templates</div>
+
+        <div class="row-actions">
+          <button id="refreshTemplatesBtn">刷新模板列表</button>
+        </div>
+
+        <div class="template-list" id="templateList">加载中...</div>
+
+        <h3>上传 JSON 保存模板</h3>
+        <div class="row2">
+          <input id="uploadTemplateName" placeholder="模板名称" />
+          <input id="uploadTemplateDesc" placeholder="模板描述" />
+        </div>
+        <input id="templateFile" type="file" accept=".json,application/json" />
+        <div class="row-actions">
+          <button id="uploadTemplateBtn">上传并保存模板</button>
+        </div>
+
+        <h3>大模型总结模板</h3>
+        <div class="row2">
+          <input id="genTemplateName" placeholder="模板名称" />
+          <input id="genTemplateDesc" placeholder="模板描述（可选）" />
+        </div>
+        <textarea id="ruleText" placeholder="输入自然语言规则描述，例如：标题黑体小二居中加粗，正文宋体小四两端对齐，1.5倍行距"></textarea>
+        <div class="row-actions">
+          <label><input id="saveGenerated" type="checkbox" checked /> 生成后保存到 templates</label>
+          <button id="generateTemplateBtn">AI 生成模板</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>文档排版与导出</h3>
+        <div class="muted">上传 docx，选择模板，后端调用大模型识别结构并排版后导出</div>
+
+        <input id="docxFile" type="file" accept=".docx" />
+        <select id="formatTemplateSelect">
+          <option value="">请选择模板</option>
+        </select>
+        <div class="row-actions">
+          <button id="formatDocxBtn">开始排版并下载</button>
+        </div>
+
+        <h3>模板编辑（改名称/描述并保存）</h3>
+        <div class="row2">
+          <input id="editTemplateName" placeholder="模板名称" />
+          <input id="editTemplateDesc" placeholder="模板描述" />
+        </div>
+        <textarea id="editTemplateRules" placeholder='模板 rules(JSON)，例如：{"正文":{"font":"宋体","size":"小四"}}'></textarea>
+        <div class="row-actions">
+          <button id="saveTemplateDirectBtn">保存编辑结果</button>
+        </div>
+
+        <h3>执行结果</h3>
+        <div class="result" id="resultBox">等待操作...</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const resultBox = document.getElementById("resultBox");
+    const templateListEl = document.getElementById("templateList");
+    const templateSelectEl = document.getElementById("formatTemplateSelect");
+
+    const refreshTemplatesBtn = document.getElementById("refreshTemplatesBtn");
+
+    const uploadTemplateNameEl = document.getElementById("uploadTemplateName");
+    const uploadTemplateDescEl = document.getElementById("uploadTemplateDesc");
+    const templateFileEl = document.getElementById("templateFile");
+    const uploadTemplateBtn = document.getElementById("uploadTemplateBtn");
+
+    const genTemplateNameEl = document.getElementById("genTemplateName");
+    const genTemplateDescEl = document.getElementById("genTemplateDesc");
+    const ruleTextEl = document.getElementById("ruleText");
+    const saveGeneratedEl = document.getElementById("saveGenerated");
+    const generateTemplateBtn = document.getElementById("generateTemplateBtn");
+
+    const docxFileEl = document.getElementById("docxFile");
+    const formatDocxBtn = document.getElementById("formatDocxBtn");
+
+    const editTemplateNameEl = document.getElementById("editTemplateName");
+    const editTemplateDescEl = document.getElementById("editTemplateDesc");
+    const editTemplateRulesEl = document.getElementById("editTemplateRules");
+    const saveTemplateDirectBtn = document.getElementById("saveTemplateDirectBtn");
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function showResult(text, level) {
+      resultBox.textContent = text;
+      resultBox.classList.remove("ok", "warn");
+      if (level === "ok") resultBox.classList.add("ok");
+      if (level === "warn") resultBox.classList.add("warn");
+    }
+
+    async function parseJsonResponse(resp) {
+      const raw = await resp.text();
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        throw new Error(`接口返回非JSON（HTTP ${resp.status}）：${raw.slice(0, 220).replace(/\s+/g, " ")}`);
+      }
+    }
+
+    async function loadTemplates() {
+      setStatus("加载模板中...");
+      try {
+        const resp = await fetch("/api/templates");
+        const data = await parseJsonResponse(resp);
+        if (!resp.ok || !data.ok) throw new Error(data.error || "加载模板失败");
+
+        const items = data.templates || [];
+        if (!items.length) {
+          templateListEl.textContent = "暂无模板，请先上传 JSON 模板或使用 AI 生成模板。";
+        } else {
+          templateListEl.innerHTML = items
+            .map((t) => `<div class="template-item"><strong>${t.name}</strong><br><span class="muted">${t.description || "无描述"} | 规则数: ${t.rules_count}</span></div>`)
+            .join("");
+        }
+
+        templateSelectEl.innerHTML = '<option value="">请选择模板</option>' +
+          items.map((t) => `<option value="${t.name}">${t.name}</option>`).join("");
+
+        setStatus("模板已加载");
+      } catch (err) {
+        showResult(`加载模板失败：${err.message}`, "warn");
+        setStatus("加载失败");
+      }
+    }
+
+    async function uploadTemplate() {
+      const template_name = uploadTemplateNameEl.value.trim();
+      const template_description = uploadTemplateDescEl.value.trim();
+      const file = templateFileEl.files && templateFileEl.files[0];
+
+      if (!template_name) {
+        showResult("请先填写模板名称", "warn");
+        return;
+      }
+      if (!file) {
+        showResult("请先选择 JSON 文件", "warn");
+        return;
+      }
+
+      uploadTemplateBtn.disabled = true;
+      setStatus("上传模板中...");
+      try {
+        const form = new FormData();
+        form.append("template_name", template_name);
+        form.append("template_description", template_description);
+        form.append("template_file", file);
+
+        const resp = await fetch("/api/templates/upload", { method: "POST", body: form });
+        const data = await parseJsonResponse(resp);
+        if (!resp.ok || !data.ok) throw new Error(data.error || "上传失败");
+
+        showResult(JSON.stringify(data, null, 2), "ok");
+        await loadTemplates();
+        setStatus("模板上传成功");
+      } catch (err) {
+        showResult(`模板上传失败：${err.message}`, "warn");
+        setStatus("模板上传失败");
+      } finally {
+        uploadTemplateBtn.disabled = false;
+      }
+    }
+
+    async function generateTemplate() {
+      const template_name = genTemplateNameEl.value.trim();
+      const template_description = genTemplateDescEl.value.trim();
+      const format_text = ruleTextEl.value.trim();
+      const save = Boolean(saveGeneratedEl.checked);
+
+      if (!template_name || !format_text) {
+        showResult("请填写模板名称和规则描述", "warn");
+        return;
+      }
+
+      generateTemplateBtn.disabled = true;
+      setStatus("AI 生成中...");
+      try {
+        const resp = await fetch("/api/template/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ template_name, template_description, format_text, save }),
+        });
+        const data = await parseJsonResponse(resp);
+        if (!resp.ok || !data.ok) throw new Error(data.error || "生成失败");
+
+        showResult(JSON.stringify(data, null, 2), "ok");
+        await loadTemplates();
+        setStatus("AI 模板生成完成");
+      } catch (err) {
+        showResult(`AI 模板生成失败：${err.message}`, "warn");
+        setStatus("AI 模板生成失败");
+      } finally {
+        generateTemplateBtn.disabled = false;
+      }
+    }
+
+    async function formatDocx() {
+      const file = docxFileEl.files && docxFileEl.files[0];
+      const template_name = templateSelectEl.value;
+      if (!file) {
+        showResult("请先选择 docx 文件", "warn");
+        return;
+      }
+      if (!template_name) {
+        showResult("请先选择模板", "warn");
+        return;
+      }
+
+      formatDocxBtn.disabled = true;
+      setStatus("文档排版中...");
+      try {
+        const form = new FormData();
+        form.append("docx_file", file);
+        form.append("template_name", template_name);
+
+        const resp = await fetch("/api/docx/format", { method: "POST", body: form });
+        const contentType = (resp.headers.get("content-type") || "").toLowerCase();
+
+        if (!resp.ok || contentType.includes("application/json")) {
+          const data = await parseJsonResponse(resp);
+          throw new Error(data.error || "排版失败");
+        }
+
+        const blob = await resp.blob();
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = file.name.replace(/\.docx$/i, "") + "_formatted.docx";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(downloadUrl);
+
+        showResult("排版完成，已开始下载文档。", "ok");
+        setStatus("排版完成");
+      } catch (err) {
+        showResult(`文档排版失败：${err.message}`, "warn");
+        setStatus("排版失败");
+      } finally {
+        formatDocxBtn.disabled = false;
+      }
+    }
+
+    async function saveTemplateDirect() {
+      const template_name = editTemplateNameEl.value.trim();
+      const template_description = editTemplateDescEl.value.trim();
+      let rules;
+
+      if (!template_name) {
+        showResult("请填写模板名称", "warn");
+        return;
+      }
+
+      try {
+        rules = JSON.parse(editTemplateRulesEl.value || "{}");
+      } catch (err) {
+        showResult(`rules JSON 解析失败：${err.message}`, "warn");
+        return;
+      }
+
+      saveTemplateDirectBtn.disabled = true;
+      setStatus("保存模板中...");
+      try {
+        const resp = await fetch("/api/templates/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ template_name, template_description, rules }),
+        });
+        const data = await parseJsonResponse(resp);
+        if (!resp.ok || !data.ok) throw new Error(data.error || "保存失败");
+
+        showResult(JSON.stringify(data, null, 2), "ok");
+        await loadTemplates();
+        setStatus("模板保存成功");
+      } catch (err) {
+        showResult(`保存模板失败：${err.message}`, "warn");
+        setStatus("模板保存失败");
+      } finally {
+        saveTemplateDirectBtn.disabled = false;
+      }
+    }
+
+    refreshTemplatesBtn.addEventListener("click", loadTemplates);
+    uploadTemplateBtn.addEventListener("click", uploadTemplate);
+    generateTemplateBtn.addEventListener("click", generateTemplate);
+    formatDocxBtn.addEventListener("click", formatDocx);
+    saveTemplateDirectBtn.addEventListener("click", saveTemplateDirect);
+
+    loadTemplates();
+  </script>
+</body>
+</html>

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>轻简对话 - Ark Chat Demo</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(120% 120% at 20% 20%, #e0e7ff 0, #f8fafc 45%, #f8fafc 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 24px;
+    }
+    .shell {
+      width: min(960px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 22px 70px -28px rgba(15, 23, 42, 0.25);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      padding: 16px;
+    }
+    header {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .title {
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .fine {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    input, button, textarea, select {
+      font: inherit;
+    }
+    .chat {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #f8fafc;
+      padding: 12px;
+      overflow-y: auto;
+      max-height: 70vh;
+    }
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 28px 0;
+      font-size: 14px;
+    }
+    .bubble {
+      margin: 10px 0;
+      display: grid;
+      gap: 6px;
+    }
+    .bubble .meta {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bubble.user .meta {
+      justify-content: flex-end;
+      text-align: right;
+    }
+    .bubble .body {
+      padding: 12px 14px;
+      line-height: 1.6;
+      border-radius: 14px;
+      max-width: 72ch;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .bubble.user .body {
+      background: #2563eb;
+      color: #fff;
+      margin-left: auto;
+      border-bottom-right-radius: 6px;
+    }
+    .bubble.ai .body {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      margin-right: auto;
+      border-bottom-left-radius: 6px;
+    }
+    .composer {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      background: #fff;
+    }
+    .composer textarea {
+      padding: 12px;
+      border: none;
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+    }
+    .composer .actions {
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+      background: #f8fafc;
+    }
+    .composer button {
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      height: 100%;
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+    }
+    .composer button:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 3px 8px rgba(0,0,0,0.08);
+    }
+    .template-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #ffffff;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .template-title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .template-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .template-panel input,
+    .template-panel textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      outline: none;
+      background: #fff;
+    }
+    .template-panel textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+    .template-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .template-save {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .template-result {
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      min-height: 48px;
+      max-height: 170px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12px;
+    }
+    .foot-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .pill-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: var(--text);
+      cursor: pointer;
+    }
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .shell { padding: 12px; }
+      header { flex-direction: column; align-items: flex-start; }
+      .composer { grid-template-columns: 1fr; }
+      .composer .actions { flex-direction: row; border-left: none; border-top: 1px solid var(--border); }
+      .composer button { width: 100%; }
+      .template-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <div class="title">对话模式 · Ark Chat</div>
+        <div class="fine">与 demo.py 同步的前端示例，内置系统提示 & 模型字段。</div>
+      </div>
+      <!-- <div class="fine">已内置 API Key 和模型，页面可直接使用。</div> -->
+    </header>
+
+    <div id="chat" class="chat">
+      <div class="empty">还没有消息，先问点什么吧 👋</div>
+    </div>
+
+    <div class="composer">
+      <textarea id="prompt" placeholder="输入消息，Shift+Enter 换行，Enter 发送" spellcheck="false"></textarea>
+      <div class="actions">
+        <button id="sendBtn">发送</button>
+      </div>
+    </div>
+
+    <div class="template-panel">
+      <div class="template-title">输入规则一键生成模板</div>
+      <div class="template-grid">
+        <input id="templateName" placeholder="模板名称，例如：学术论文模板">
+        <input id="templateDesc" placeholder="模板描述（可选）">
+      </div>
+      <textarea id="formatText" placeholder="输入规则描述，例如：标题黑体小二居中加粗，正文宋体小四两端对齐，行距1.5倍"></textarea>
+      <div class="template-actions">
+        <button class="pill-btn" id="genTemplateBtn">一键生成模板</button>
+        <label class="template-save"><input id="saveTemplate" type="checkbox" checked> 同时保存到 templates 目录</label>
+      </div>
+      <div class="template-result" id="templateResult">模板结果将显示在这里</div>
+    </div>
+
+    <div class="foot-actions">
+      <span id="status">已就绪</span>
+      <button class="pill-btn" id="clearBtn">清空记录</button>
+      <button class="pill-btn" id="presetBtn">填入示例提示</button>
+    </div>
+  </div>
+
+  <script>
+    const chatEl = document.getElementById('chat');
+    const promptEl = document.getElementById('prompt');
+    const statusEl = document.getElementById('status');
+    const sendBtn = document.getElementById('sendBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const presetBtn = document.getElementById('presetBtn');
+    const templateNameEl = document.getElementById('templateName');
+    const templateDescEl = document.getElementById('templateDesc');
+    const formatTextEl = document.getElementById('formatText');
+    const genTemplateBtn = document.getElementById('genTemplateBtn');
+    const saveTemplateEl = document.getElementById('saveTemplate');
+    const templateResultEl = document.getElementById('templateResult');
+
+    const API_KEY = "1c3e83b7-e80f-457b-9d9f-c313c8a3070e";
+    const MODEL = "doubao-seed-2-0-mini-260215";
+    const DEFAULT_SYSTEM = "你是一个专业的方案助手。";
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function addBubble(role, text) {
+      if (chatEl.querySelector('.empty')) chatEl.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.className = `bubble ${role}`;
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = role === 'user' ? '我' : 'Ark';
+      const body = document.createElement('div');
+      body.className = 'body';
+      body.textContent = text;
+      wrap.append(meta, body);
+      chatEl.appendChild(wrap);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const content = promptEl.value.trim();
+      if (!content) return;
+      addBubble('user', content);
+      promptEl.value = '';
+      promptEl.focus();
+
+      setStatus('请求中…');
+      sendBtn.disabled = true;
+
+      try {
+        const res = await fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${API_KEY}`
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            messages: [
+              { role: "system", content: DEFAULT_SYSTEM },
+              { role: "user", content }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000
+          })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status}: ${text}`);
+        }
+        const data = await res.json();
+        const reply = data?.choices?.[0]?.message?.content || '[空响应]';
+        addBubble('ai', reply);
+        setStatus('已完成');
+      } catch (err) {
+        addBubble('ai', `请求失败：${err.message}`);
+        setStatus('失败');
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    function showTemplateResult(text) {
+      templateResultEl.textContent = text;
+    }
+
+    async function generateTemplate() {
+      const template_name = templateNameEl.value.trim();
+      const template_description = templateDescEl.value.trim();
+      const format_text = formatTextEl.value.trim();
+
+      if (!template_name) {
+        showTemplateResult('请先输入模板名称');
+        templateNameEl.focus();
+        return;
+      }
+      if (!format_text) {
+        showTemplateResult('请先输入规则描述');
+        formatTextEl.focus();
+        return;
+      }
+
+      genTemplateBtn.disabled = true;
+      setStatus('模板生成中…');
+      showTemplateResult('正在调用服务，请稍候...');
+
+      try {
+        const res = await fetch('/api/template/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            template_name,
+            template_description,
+            format_text,
+            save: Boolean(saveTemplateEl.checked),
+          }),
+        });
+
+        const rawText = await res.text();
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (err) {
+          const snippet = rawText.slice(0, 220).replace(/\s+/g, ' ');
+          throw new Error(`接口返回非JSON（HTTP ${res.status}）：${snippet}`);
+        }
+
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || '模板生成失败');
+        }
+
+        showTemplateResult(JSON.stringify(data, null, 2));
+        setStatus('模板生成完成');
+      } catch (err) {
+        showTemplateResult(`生成失败：${err.message}`);
+        setStatus('模板生成失败');
+      } finally {
+        genTemplateBtn.disabled = false;
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    clearBtn.addEventListener('click', () => {
+      chatEl.innerHTML = '<div class="empty">记录已清空。</div>';
+    });
+    presetBtn.addEventListener('click', () => {
+      promptEl.value = "请检查下面这段小小说需不需要修改：...";
+      promptEl.focus();
+    });
+    genTemplateBtn.addEventListener('click', generateTemplate);
+    promptEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
