@@ -1,0 +1,20 @@
+{
+  "has_inconsistency": true,
+  "summary": "文本整体语义一致，仅存在两处轻微问题，一处为漏字语病，一处为冗余表述",
+  "issues": [
+    {
+      "type": "语病",
+      "location": "规则引擎三步骤的文档解析部分",
+      "evidence": "把 Word/PDF 等文档拆成标题、正文、表格、格式属等结构化信息",
+      "reason": "表述存在漏字，“格式属”应为“格式属性”，成分残缺，属于语病",
+      "severity": "low"
+    },
+    {
+      "type": "冗余",
+      "location": "硬性规则检测文档格式的步骤部分",
+      "evidence": "3、依次调用依次对比",
+      "reason": "重复使用“依次”，属于冗余表述",
+      "severity": "low"
+    }
+  ]
+}

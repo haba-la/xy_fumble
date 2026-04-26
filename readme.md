@@ -1,0 +1,1 @@
+直接使用 python all_rule_and_consistent/web_portal.py 运行

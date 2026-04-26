@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>文档排版与一致性检查</title>
+    <link rel="stylesheet" href="/static/layout_portal.css" />
+  </head>
+  <body>
+    <div class="bg-shape shape-a"></div>
+    <div class="bg-shape shape-b"></div>
+
+    <main class="shell">
+      <header class="hero">
+        <h1>文档排版工作台</h1>
+        <p>上传待修改文档与模板文档，自动完成格式同步、HTML 预览、DOCX 回写和文本一致性检查。</p>
+      </header>
+
+      <section class="panel form-panel">
+        <h2>步骤一：上传文档</h2>
+        <form id="pipeline-form">
+          <label class="input-block">
+            <span>待修改文档（DOCX）</span>
+            <input id="source_docx" name="source_docx" type="file" accept=".docx" required />
+          </label>
+          <label class="input-block">
+            <span>模板文档（DOCX）</span>
+            <input id="template_docx" name="template_docx" type="file" accept=".docx" required />
+          </label>
+          <button id="run-btn" type="submit">开始处理</button>
+        </form>
+        <p id="status-text" class="status">等待上传文件。</p>
+        <div class="progress-wrap" aria-live="polite">
+          <div class="progress-meta">
+            <span id="progress-step">未开始</span>
+            <span id="progress-value">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="panel result-panel">
+          <h2>步骤二：检查结果与导出</h2>
+
+          <div class="summary-grid">
+            <div>
+              <div class="label">任务编号</div>
+              <div id="job-id" class="value">-</div>
+            </div>
+            <div>
+              <div class="label">检查结论</div>
+              <div id="check-summary" class="value">-</div>
+            </div>
+          </div>
+
+          <div class="export-row">
+            <a id="download-profile" class="download disabled" href="#">导出格式 JSON</a>
+            <a id="download-html" class="download disabled" href="#">导出排版后 HTML</a>
+            <a id="download-docx" class="download disabled" href="#">导出排版后 Word</a>
+          </div>
+
+          <h3>一致性问题明细</h3>
+          <div id="issue-list" class="issue-list">
+            <p class="muted">尚未执行一致性检查。</p>
+          </div>
+          <p id="check-error" class="error"></p>
+        </div>
+
+        <div class="panel preview-panel">
+          <h2>步骤三：排版后 HTML 预览窗口</h2>
+          <iframe id="preview-frame" title="排版后 HTML 预览"></iframe>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById("pipeline-form");
+      const runBtn = document.getElementById("run-btn");
+      const statusText = document.getElementById("status-text");
+      const jobIdEl = document.getElementById("job-id");
+      const summaryEl = document.getElementById("check-summary");
+      const issueList = document.getElementById("issue-list");
+      const checkError = document.getElementById("check-error");
+      const previewFrame = document.getElementById("preview-frame");
+      const progressStep = document.getElementById("progress-step");
+      const progressValue = document.getElementById("progress-value");
+      const progressFill = document.getElementById("progress-fill");
+
+      const downloadProfile = document.getElementById("download-profile");
+      const downloadHtml = document.getElementById("download-html");
+      const downloadDocx = document.getElementById("download-docx");
+      let progressTimer = null;
+
+      function updateProgress(percent, stepText) {
+        const value = Math.max(0, Math.min(100, Math.round(percent)));
+        progressFill.style.width = `${value}%`;
+        progressValue.textContent = `${value}%`;
+        if (stepText) {
+          progressStep.textContent = stepText;
+        }
+      }
+
+      function startProgressSimulation() {
+        if (progressTimer) {
+          clearInterval(progressTimer);
+        }
+
+        const stages = [
+          [8, "上传文件中"],
+          [22, "DOCX 转 HTML"],
+          [46, "模板样式同步"],
+          [68, "HTML 转 DOCX"],
+          [88, "一致性检查中"],
+        ];
+        let i = 0;
+        updateProgress(2, "准备开始");
+
+        progressTimer = setInterval(() => {
+          if (i >= stages.length) {
+            clearInterval(progressTimer);
+            progressTimer = null;
+            return;
+          }
+          const [p, text] = stages[i];
+          updateProgress(p, text);
+          i += 1;
+        }, 700);
+      }
+
+      function finishProgress(ok) {
+        if (progressTimer) {
+          clearInterval(progressTimer);
+          progressTimer = null;
+        }
+        if (ok) {
+          updateProgress(100, "处理完成");
+        } else {
+          const current = Number(progressValue.textContent.replace("%", "")) || 0;
+          updateProgress(Math.max(0, Math.min(current, 95)), "处理失败");
+        }
+      }
+
+      function setDownloads(downloads) {
+        const pairs = [
+          [downloadProfile, downloads.profile_json],
+          [downloadHtml, downloads.synced_html],
+          [downloadDocx, downloads.synced_docx],
+        ];
+
+        pairs.forEach(([el, href]) => {
+          if (href) {
+            el.href = href;
+            el.classList.remove("disabled");
+          }
+        });
+      }
+
+      function renderIssues(consistency) {
+        if (!consistency || !Array.isArray(consistency.issues) || consistency.issues.length === 0) {
+          issueList.innerHTML = '<p class="muted">未发现明显问题，或暂无问题明细。</p>';
+          return;
+        }
+
+        const cards = consistency.issues.map((item) => {
+          const type = item.type || "未分类";
+          const location = item.location || "未标注位置";
+          const evidence = item.evidence || "";
+          const reason = item.reason || "";
+          const severity = item.severity || "low";
+
+          return `
+            <article class="issue-card">
+              <div class="issue-head">
+                <span class="tag">${type}</span>
+                <span class="severity ${severity}">${severity}</span>
+              </div>
+              <p><strong>位置：</strong>${location}</p>
+              <p><strong>证据：</strong>${evidence}</p>
+              <p><strong>原因：</strong>${reason}</p>
+            </article>
+          `;
+        });
+
+        issueList.innerHTML = cards.join("");
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        checkError.textContent = "";
+        runBtn.disabled = true;
+        statusText.textContent = "处理中：正在执行 DOCX 转 HTML、模板同步、DOCX 回写与一致性检查...";
+        startProgressSimulation();
+
+        const data = new FormData(form);
+
+        try {
+          const response = await fetch("/api/process", {
+            method: "POST",
+            body: data,
+          });
+
+          const result = await response.json();
+          if (!response.ok || !result.ok) {
+            throw new Error(result.error || "处理失败");
+          }
+
+          jobIdEl.textContent = result.job_id;
+          summaryEl.textContent = result.consistency?.summary || "未返回检查摘要";
+          setDownloads(result.downloads || {});
+          renderIssues(result.consistency || {});
+
+          if (result.preview_url) {
+            previewFrame.src = `${result.preview_url}?t=${Date.now()}`;
+          }
+
+          if (result.consistency_error) {
+            checkError.textContent = `一致性检查执行失败：${result.consistency_error}`;
+          }
+
+          statusText.textContent = "处理完成，可预览并导出结果文件。";
+          finishProgress(true);
+        } catch (error) {
+          statusText.textContent = "处理失败，请检查输入文件后重试。";
+          checkError.textContent = error.message || String(error);
+          finishProgress(false);
+        } finally {
+          runBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

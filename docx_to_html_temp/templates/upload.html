@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DOCX to HTML Temp Converter</title>
+    <style>
+      :root {
+        --bg1: #f7f2e8;
+        --bg2: #dce7f7;
+        --panel: #fffefb;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --accent: #1d4ed8;
+        --ok: #166534;
+        --warn: #b91c1c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Source Sans 3", "Noto Sans", sans-serif;
+        color: var(--text);
+        background: radial-gradient(circle at 15% 10%, var(--bg1), transparent 40%),
+          radial-gradient(circle at 85% 15%, #e7eefc, transparent 42%),
+          linear-gradient(160deg, #f1f5f9 0%, var(--bg2) 100%);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .card {
+        width: min(760px, 100%);
+        background: var(--panel);
+        border: 1px solid #d6dfec;
+        border-radius: 16px;
+        box-shadow: 0 20px 45px rgba(16, 24, 40, 0.12);
+        padding: 28px;
+        animation: rise 420ms ease-out;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: "Merriweather", "Noto Serif", serif;
+        font-size: clamp(1.5rem, 2.3vw, 2rem);
+        color: #0f172a;
+      }
+
+      p {
+        color: var(--muted);
+      }
+
+      form {
+        margin-top: 18px;
+        display: grid;
+        gap: 14px;
+      }
+
+      input[type="file"] {
+        width: 100%;
+        border: 1px dashed #93a5c6;
+        border-radius: 10px;
+        padding: 12px;
+        background: #f8fbff;
+      }
+
+      button {
+        justify-self: start;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 18px;
+        background: var(--accent);
+        color: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .msg {
+        margin-top: 16px;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 0.95rem;
+      }
+
+      .ok {
+        background: #e7f7ec;
+        color: var(--ok);
+        border: 1px solid #bae6c7;
+      }
+
+      .err {
+        background: #fef2f2;
+        color: var(--warn);
+        border: 1px solid #fecaca;
+      }
+
+      a {
+        color: #0f3ea9;
+        word-break: break-all;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>DOCX to HTML Temporary File</h1>
+      <p>Upload a DOCX file. The server converts it to an HTML temp file for your next editing stage.</p>
+
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="docx_file" accept=".docx" required />
+        <button type="submit">Upload and Convert</button>
+      </form>
+
+      {% if success %}
+      <div class="msg ok">
+        <div>{{ success }}</div>
+        <div>Saved path: {{ html_path }}</div>
+        <div>Open: <a href="/html/{{ html_file }}" target="_blank">/html/{{ html_file }}</a></div>
+      </div>
+      {% endif %}
+
+      {% if error %}
+      <div class="msg err">{{ error }}</div>
+      {% endif %}
+    </main>
+  </body>
+</html>

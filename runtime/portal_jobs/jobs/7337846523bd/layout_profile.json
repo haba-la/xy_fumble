@@ -1,0 +1,90 @@
+{
+  "source_file": "/root/all_rule_and_consistent/runtime/portal_jobs/jobs/7337846523bd/template_upload.docx",
+  "page": {
+    "width_pt": 595.3,
+    "height_pt": 841.9,
+    "margin_top_pt": 72.0,
+    "margin_right_pt": 90.0,
+    "margin_bottom_pt": 72.0,
+    "margin_left_pt": 90.0
+  },
+  "body": {
+    "font_name": "华文仿宋",
+    "font_size_pt": 16.0,
+    "line_spacing": 1.5,
+    "line_spacing_pt": 25.0,
+    "space_before_pt": 10.0,
+    "space_after_pt": 0.0,
+    "bold": false,
+    "alignment": "justify",
+    "first_line_indent_pt": 32.0
+  },
+  "headings": {
+    "h1": {
+      "font_name": "华文仿宋",
+      "font_size_pt": 18.0,
+      "line_spacing": 1.5,
+      "line_spacing_pt": 25.0,
+      "space_before_pt": 10.0,
+      "space_after_pt": 0.0,
+      "bold": true,
+      "alignment": "center",
+      "first_line_indent_pt": 36.05
+    },
+    "h2": {
+      "font_name": "华文仿宋",
+      "font_size_pt": 16.0,
+      "line_spacing": 1.5,
+      "line_spacing_pt": 25.0,
+      "space_before_pt": 10.0,
+      "space_after_pt": 0.0,
+      "bold": true,
+      "alignment": "justify",
+      "first_line_indent_pt": 32.05
+    },
+    "h3": {
+      "font_name": "华文仿宋",
+      "font_size_pt": 14.0,
+      "line_spacing": 1.5,
+      "line_spacing_pt": 25.0,
+      "space_before_pt": 10.0,
+      "space_after_pt": 0.0,
+      "bold": true,
+      "alignment": "justify",
+      "first_line_indent_pt": 32.05
+    },
+    "h4": {
+      "font_name": "华文仿宋",
+      "font_size_pt": 12.0,
+      "line_spacing": 1.5,
+      "line_spacing_pt": 25.0,
+      "space_before_pt": 10.0,
+      "space_after_pt": 0.0,
+      "bold": true,
+      "alignment": "justify",
+      "first_line_indent_pt": 32.05
+    },
+    "h5": {
+      "font_name": "华文仿宋",
+      "font_size_pt": 11.0,
+      "line_spacing": 1.5,
+      "line_spacing_pt": 25.0,
+      "space_before_pt": 10.0,
+      "space_after_pt": 0.0,
+      "bold": true,
+      "alignment": "justify",
+      "first_line_indent_pt": 32.05
+    },
+    "h6": {
+      "font_name": "华文仿宋",
+      "font_size_pt": 11.0,
+      "line_spacing": 1.5,
+      "line_spacing_pt": 25.0,
+      "space_before_pt": 10.0,
+      "space_after_pt": 0.0,
+      "bold": true,
+      "alignment": "justify",
+      "first_line_indent_pt": 32.05
+    }
+  }
+}
