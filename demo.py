@@ -16,7 +16,7 @@ from docx_formatter import generate_formatting_instructions, format_docx_bytes
 # 注意：os.getenv 的第一个参数必须是“环境变量名”，不是 API Key 本身。
 CODE_API_KEY = "xxxxxxxxxxxxxxxxx"
 API_KEY = (os.getenv("ARK_API_KEY") or CODE_API_KEY).strip()
-MODEL = os.getenv("ARK_MODEL", "doubao-seed-2-0-lite-260215")
+MODEL = os.getenv("ARK_MODEL", "xxxxxxxxxxxxxxxxxxx")
 ARK_URL = "xxxxxxxxxxxxxxxxxxxxxxx"
 LLM_TIMEOUT_SECONDS = 300
 LLM_RETRY_TIMES = 3
